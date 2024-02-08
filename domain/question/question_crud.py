@@ -5,26 +5,33 @@ from sqlalchemy import and_
 from models import Question, User, Answer
 from sqlalchemy.orm import Session
 
-def get_question_list(db: Session, skip: int = 0, limit: int = 10, keyword: str = ''):
+def get_question_list(db: Session, skip: int = 0, limit: int = 10, keyword: str = '', mode: str = ''):
     question_list = db.query(Question)
     if keyword:
         search = '%%{}%%'.format(keyword)
-        sub_query = db.query(Answer.question_id, Answer.content, User.username)\
+        sub_query = db.query(Answer.question_id, Answer.content, User.username) \
             .outerjoin(User, and_(Answer.user_id == User.id)).subquery()
-        question_list = question_list \
+        if mode =="subject":
+            question_list = question_list \
             .outerjoin(User) \
             .outerjoin(sub_query, and_(sub_query.c.question_id == Question.id)) \
-            .filter(Question.subject.ilike(search) |
-                    Question.content.ilike(search) |
-                    User.username.ilike(search) |
-                    sub_query.c.content.ilike(search) |
-                    sub_query.c.content.ilike(search) 
-                    )
+            .filter(Question.subject.ilike(search))
+        if mode =="content":
+            question_list = question_list \
+            .outerjoin(User) \
+            .outerjoin(sub_query, and_(sub_query.c.question_id == Question.id)) \
+            .filter(Question.content.ilike(search))
+        if mode =="user":
+            question_list = question_list \
+            .outerjoin(User) \
+            .outerjoin(sub_query, and_(sub_query.c.question_id == Question.id)) \
+            .filter(User.username.ilike(search) |sub_query.c.username.ilike(search))
+        
     total = question_list.distinct().count()
     question_list = question_list.order_by(Question.create_date.desc())\
         .offset(skip).limit(limit).distinct().all()
     return total, question_list
-    
+
 
 def get_question(db: Session, question_id: int):
     question = db.query(Question).get(question_id)

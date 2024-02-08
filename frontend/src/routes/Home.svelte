@@ -3,12 +3,13 @@
   import { link } from 'svelte-spa-router'
   import moment from 'moment/min/moment-with-locales'
     moment.locale('ko')
-  import { page, keyword, is_login } from "../lib/store"
-
+  import { page, keyword, mode, is_login } from "../lib/store"
+  
   let question_list = []
   let size = 10
   let total =0
   let kw = ''
+  let m =''
   $: total_page = Math.ceil(total/size)
   
   function get_question_list() {
@@ -16,15 +17,19 @@
       page: $page,
       size: size,
       keyword: $keyword,
+      mode: $mode
+     
     }
     fastapi('get', '/api/question/list', params, (json) => {
           question_list = json.question_list
           total = json.total
           kw = $keyword
+          m =$mode
+          
     })
   }
 
-  $:$page, $keyword, get_question_list() 
+  $:$page, $keyword, $mode, get_question_list() 
 </script>
 
 <div class="container my-3">
@@ -35,10 +40,16 @@
     </div>
     <div class="col-6">
         <div class="input-group">
+            <select class = "form-control search-select" bind:value={$mode}>
+              <option value = "subject">제목</option>
+              <option value = "content">내용</option>
+              <option value ="user">작성자</option>
+            </select>
             <input type="text" class="form-control" bind:value="{kw}">
             <button class="btn btn-outline-secondary" on:click={() => {$keyword = kw, $page = 0}}>
                 검색
             </button>
+            
         </div>
     </div>
 </div>
