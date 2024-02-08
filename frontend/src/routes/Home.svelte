@@ -44,6 +44,7 @@
               <option value = "subject">제목</option>
               <option value = "content">내용</option>
               <option value ="user">작성자</option>
+              <option value ="answer">답변</option>
             </select>
             <input type="text" class="form-control" bind:value="{kw}">
             <button class="btn btn-outline-secondary" on:click={() => {$keyword = kw, $page = 0}}>

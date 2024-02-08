@@ -26,6 +26,11 @@ def get_question_list(db: Session, skip: int = 0, limit: int = 10, keyword: str 
             .outerjoin(User) \
             .outerjoin(sub_query, and_(sub_query.c.question_id == Question.id)) \
             .filter(User.username.ilike(search) |sub_query.c.username.ilike(search))
+        if mode =="answer":
+            question_list = question_list \
+            .outerjoin(User) \
+            .outerjoin(sub_query, and_(sub_query.c.question_id == Question.id)) \
+            .filter(sub_query.c.content.ilike(search))
         
     total = question_list.distinct().count()
     question_list = question_list.order_by(Question.create_date.desc())\
